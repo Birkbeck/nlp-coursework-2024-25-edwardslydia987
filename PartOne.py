@@ -5,6 +5,7 @@
 import nltk
 import spacy
 from pathlib import Path
+import pandas as pd
 
 
 nlp = spacy.load("en_core_web_sm")
@@ -43,6 +44,33 @@ def count_syl(word, d):
 def read_novels(path=Path.cwd() / "texts" / "novels"):
     """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
     author, and year"""
+    dataframe_data = []
+    for file in path.glob("*.txt"):
+        with open(file) as f:
+            text = f.read()
+        file_name = file.stem
+        column_split = file_name.split("-")
+        title = column_split[0]
+        author = column_split[1]
+        year = column_split[2]
+        dataframe.append({"Text": text, "Title": title, "Author": author, "Year": year})
+    dataframe = pd.DataFrame(dataframe_data)
+    dataframe = dataframe.sort_values(by="year", ascending=True)
+    dataframe = dataframe.reset_index(drop=True)   
+    return dataframe
+
+
+def read_novels_to_pickle(path=Path.cwd() / "texts" / "novels", store_path=Path.cwd() / "pickles", out_name="novels.pickle"):
+    """Reads texts from a directory of .txt files and stores the DataFrame with the text, title,
+    author, and year to a pickle file."""
+    df = read_novels(path)
+    if not store_path.exists():
+        store_path.mkdir(parents=True, exist_ok=True)
+    df.to_pickle(store_path / out_name)
+    """Writes the DataFrame to a pickle file."""
+    
+
+
     pass
 
 
