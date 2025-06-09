@@ -58,19 +58,6 @@ def read_novels(path=Path.cwd() / "texts" / "novels"):
     dataframe = dataframe.sort_values(by="year", ascending=True)
     dataframe = dataframe.reset_index(drop=True)   
     return dataframe
-
-
-def read_novels_to_pickle(path=Path.cwd() / "texts" / "novels", store_path=Path.cwd() / "pickles", out_name="novels.pickle"):
-    """Reads texts from a directory of .txt files and stores the DataFrame with the text, title,
-    author, and year to a pickle file."""
-    df = read_novels(path)
-    if not store_path.exists():
-        store_path.mkdir(parents=True, exist_ok=True)
-    df.to_pickle(store_path / out_name)
-    """Writes the DataFrame to a pickle file."""
-    
-
-
     pass
 
 
