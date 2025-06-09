@@ -44,7 +44,7 @@ def count_syl(word, d):
 def read_novels(path=Path.cwd() / "texts" / "novels"):
     """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
     author, and year"""
-    dataframe_data = []
+    df_data = []
     for file in path.glob("*.txt"):
         with open(file) as f:
             text = f.read()
@@ -53,32 +53,40 @@ def read_novels(path=Path.cwd() / "texts" / "novels"):
         title = column_split[0]
         author = column_split[1]
         year = column_split[2]
-        dataframe.append({"Text": text, "Title": title, "Author": author, "Year": year})
-    dataframe = pd.DataFrame(dataframe_data)
-    dataframe = dataframe.sort_values(by="year", ascending=True)
-    dataframe = dataframe.reset_index(drop=True)   
-    return dataframe
-    pass
+        df_data.append({"Text": text, "Title": title, "Author": author, "Year": year})
+    df = pd.DataFrame(df_data)
+    df = df.sort_values(by="Year", ascending=True)
+    df = df.reset_index(drop=True)   
+    return df
+
 
 
 def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
     """Parses the text of a DataFrame using spaCy, stores the parsed docs as a column and writes 
     the resulting  DataFrame to a pickle file"""
-    pass
-
+    store_path.mkdir(parents=True, exist_ok=True)
+    parsed_docs = []
+    for i, row in df.iterrows():
+        doc = nlp(row["Text"])
+        parsed_docs.append(doc)
+        df["Parsed"] = parsed_docs
+        df.to_pickle(store_path / out_name)
+    return df
 
 def nltk_ttr(text):
     """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
-    pass
-
-
+    tokens = nltk.word_tokenize(text)
+    tokens = [token.lower() for token in tokens if token.isalpha()]
+    types = set(tokens)
+    ttr = len(types) / len(tokens) if len(tokens) > 0 else 0
+    return ttr
+ 
 def get_ttrs(df):
     """helper function to add ttr to a dataframe"""
     results = {}
     for i, row in df.iterrows():
         results[row["title"]] = nltk_ttr(row["text"])
     return results
-
 
 def get_fks(df):
     """helper function to add fk scores to a dataframe"""
@@ -111,17 +119,17 @@ if __name__ == "__main__":
     """
     uncomment the following lines to run the functions once you have completed them
     """
-    #path = Path.cwd() / "p1-texts" / "novels"
-    #print(path)
-    #df = read_novels(path) # this line will fail until you have completed the read_novels function above.
-    #print(df.head())
-    #nltk.download("cmudict")
-    #parse(df)
-    #print(df.head())
-    #print(get_ttrs(df))
-    #print(get_fks(df))
-    #df = pd.read_pickle(Path.cwd() / "pickles" /"name.pickle")
-    # print(adjective_counts(df))
+    path = Path.cwd() / "p1-texts" / "novels"
+    print(path)
+    df = read_novels(path) # this line will fail until you have completed the read_novels function above.
+    print(df.head())
+    nltk.download("cmudict")
+    parse(df)
+    print(df.head())
+    print(get_ttrs(df))
+    print(get_fks(df))
+    df = pd.read_pickle(Path.cwd() / "pickles" /"name.pickle")
+    print(adjective_counts(df))
     """ 
     for i, row in df.iterrows():
         print(row["title"])
