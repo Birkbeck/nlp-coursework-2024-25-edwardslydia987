@@ -14,7 +14,7 @@ from nltk.tokenize import word_tokenize
 from nltk.tokenize import sent_tokenize
 import re
 import string
-
+from collections import Counter
 
 d = cmudict.dict()
 
@@ -74,7 +74,7 @@ def read_novels(path=Path.cwd() / "texts" / "novels"):
             title = column_split[0]
             author = column_split[1]
             year = column_split[2]
-    data.append({"text": text, "title": title, "author": author, "year": year})
+        data.append({"text": text, "title": title, "author": author, "year": year})
     df = pd.DataFrame(data)
     df.sort_values(by=["year"])
     return df
@@ -127,10 +127,18 @@ def subjects_by_verb_count(doc, verb):
 
 
 
-def adjective_counts(doc):
-    """Extracts the most common adjectives in a parsed document. Returns a list of tuples."""
-    pass
-
+def object_counts(doc):
+    """Extracts the most common objects in a parsed document. Returns a list of tuples."""
+    all_objects = []
+    for i, row in df.iterrows():
+        doc = row['Parsed']
+        if hasattr(doc, '__iter__') and hasattr(doc[0] if len(doc) > 0 else None, 'dep_'):
+            objects = [token.text.lower() for token in doc if token.dep_ == 'dobj']
+            all_objects.extend(objects)
+    #common = Counter(objects).most_common(10)
+    #return common
+    
+    return Counter(all_objects).most_common(10)
 
 
 if __name__ == "__main__":
@@ -147,7 +155,7 @@ if __name__ == "__main__":
     print(get_ttrs(df))
     print(get_fks(df))
     df = pd.read_pickle(Path.cwd() / "pickles" /"parsed.pickle")
-    print(adjective_counts(df))
+    print(object_counts(df))
     """ 
     for i, row in df.iterrows():
         print(row["title"])
