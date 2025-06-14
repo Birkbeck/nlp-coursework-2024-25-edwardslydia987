@@ -6,6 +6,7 @@ p2-texts/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*.pickle
 *$py.class
 
 # C extensions

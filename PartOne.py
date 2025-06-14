@@ -6,7 +6,17 @@ import nltk
 import spacy
 from pathlib import Path
 import pandas as pd
+nltk.download('cmudict')
+nlp = spacy.load("en_core_web_sm")
+nltk.download('punkt_tab')
+from nltk.corpus import cmudict
+from nltk.tokenize import word_tokenize
+from nltk.tokenize import sent_tokenize
+import re
+import string
 
+
+d = cmudict.dict()
 
 nlp = spacy.load("en_core_web_sm")
 nlp.max_length = 2000000
@@ -24,8 +34,15 @@ def fk_level(text, d):
     Returns:
         float: The Flesch-Kincaid Grade Level of the text. (higher grade is more difficult)
     """
-    pass
+    words = word_tokenize(text)
+    word_count = len(words)
+    sentances = sent_tokenize(text)
+    sentance_count = len(sentances)
 
+    syllable_count = sum(count_syl(word, d) for word in words)
+    flesch_kincaid = 0.39 * (word_count / sentance_count) + 11.8 * (syllable_count / word_count) - 15.59
+    
+    return(flesch_kincaid)
 
 def count_syl(word, d):
     """Counts the number of syllables in a word given a dictionary of syllables per word.
@@ -38,49 +55,50 @@ def count_syl(word, d):
     Returns:
         int: The number of syllables in the word.
     """
-    pass
+    word = word.lower().strip(string.punctuation)
+    if word in d:
+        return len([y for y in d[word][0] if y[-1].isdigit()])
+    else:
+        return max(1, len(re.findall(r'[aeiou]+', word)))
 
 
 def read_novels(path=Path.cwd() / "texts" / "novels"):
     """Reads texts from a directory of .txt files and returns a DataFrame with the text, title,
     author, and year"""
-    df_data = []
-    for file in path.glob("*.txt"):
-        with open(file) as f:
-            text = f.read()
-        file_name = file.stem
-        column_split = file_name.split("-")
-        title = column_split[0]
-        author = column_split[1]
-        year = column_split[2]
-        df_data.append({"Text": text, "Title": title, "Author": author, "Year": year})
-    df = pd.DataFrame(df_data)
-    df = df.sort_values(by="Year", ascending=True)
-    df = df.reset_index(drop=True)   
+    data = []
+    for file_path in path.glob("*.txt"):
+        with open(file_path) as file:
+            text = file.read()
+            file_name = file_path.stem
+            column_split = file_name.split("-")
+            title = column_split[0]
+            author = column_split[1]
+            year = column_split[2]
+    data.append({"text": text, "title": title, "author": author, "year": year})
+    df = pd.DataFrame(data)
+    df.sort_values(by=["year"])
     return df
-
 
 
 def parse(df, store_path=Path.cwd() / "pickles", out_name="parsed.pickle"):
     """Parses the text of a DataFrame using spaCy, stores the parsed docs as a column and writes 
     the resulting  DataFrame to a pickle file"""
     store_path.mkdir(parents=True, exist_ok=True)
-    parsed_docs = []
-    for i, row in df.iterrows():
-        doc = nlp(row["Text"])
-        parsed_docs.append(doc)
-        df["Parsed"] = parsed_docs
-        df.to_pickle(store_path / out_name)
+    parsed_docs = [nlp(text) for text in df['text']]
+    df["Parsed"] = parsed_docs
+    df.to_pickle(store_path / out_name)
     return df
+
 
 def nltk_ttr(text):
     """Calculates the type-token ratio of a text. Text is tokenized using nltk.word_tokenize."""
     tokens = nltk.word_tokenize(text)
-    tokens = [token.lower() for token in tokens if token.isalpha()]
-    types = set(tokens)
-    ttr = len(types) / len(tokens) if len(tokens) > 0 else 0
+    words = [token.lower() for token in tokens if token not in string.punctuation]
+    types = set(words)
+    ttr = len(types) / len(words)
     return ttr
- 
+
+
 def get_ttrs(df):
     """helper function to add ttr to a dataframe"""
     results = {}
@@ -128,7 +146,7 @@ if __name__ == "__main__":
     print(df.head())
     print(get_ttrs(df))
     print(get_fks(df))
-    df = pd.read_pickle(Path.cwd() / "pickles" /"name.pickle")
+    df = pd.read_pickle(Path.cwd() / "pickles" /"parsed.pickle")
     print(adjective_counts(df))
     """ 
     for i, row in df.iterrows():
