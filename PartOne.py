@@ -118,22 +118,68 @@ def get_fks(df):
 
 def subjects_by_verb_pmi(doc, target_verb):
     """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
-    pass
+    subjects = []
+    target_verb_subjects = []
+    target_verb_count = 0
+    
+    for token in doc:
+        if token.lemma_.lower() == target_verb.lower() and token.pos_ == 'VERB':
+            target_verb_count += 1
 
+            for child in token.children:
+                if child.dep_ == 'nsubj':
+                    subject_text = child.text.lower()
+                    target_verb_subjects.append(subject_text)
+        
+        if token.dep_ == 'nsubj':
+            subjects.append(token.text.lower())
+    
+    total_subjects = len(subjects)
+    subject_counts = Counter(subjects)
+    target_subject_counts = Counter(target_verb_subjects)
+
+    pmi_scores = {}
+    for subject, joint_count in target_subject_counts.items():
+        p_subject_verb = joint_count / total_subjects
+        p_subject = subject_counts[subject] / total_subjects
+        p_verb = target_verb_count / total_subjects
+
+        pmi = math.log2(p_subject_verb / (p_subject * p_verb))
+        pmi_scores[subject] = pmi
+    
+    return dict(sorted(pmi_scores.items(), key = lambda x: x[1], reverse = True)[:10])
+    
+    
+    #for token in doc:
+    #    if token.dep_ == 'nsubj' and token.head/lemma_ == target_verb:
+    #        subject = token.text.lower()
+    #        subject_counts[subject] += 1
+    #        verb_counts[target_verb] += 1
+    #        cooccurrence[(subject, target_verb)] += 1
+    #        total_verbs += 1
+    #pmi_scores = {}
+    #for (subject, verb), joint_count in cooccurrence.items():
+    #    p_subject = subject_counts[subject] / sum(subject_counts.values())
+    #    p_verb = verb_counts[verb] / total_verbs
+    #    p_joint = joint_count / total_verbs
+    #    pmi = math.log2(p_joint / (p_subject * p_verb))
+    #    pmi_scores[subject] = pmi
+
+    #return dict(sorted(pmi_scores.items(), key = lambda x: x[1], reverse = True)[:10])
 
 
 def subjects_by_verb_count(doc, verb):
     """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
     results = {}
+    #for token in doc:
+    #    doc = row['Parsed']
+    subjects=[]
     for token in doc:
-        doc = row['Parsed']
-        subjects=[]
-        for token in doc:
-            if token.lemma_ == verb and token.pos_ == "VERB":
-                for child in token.children:
-                    if child.dep_ == 'nsubj':
-                        subjects.append(child.text.lower())
-        results[row['title']] = Counter(subjects).most_common(10)
+        if token.lemma_ == verb.lower() and token.pos_ == "VERB":
+            for child in token.children:
+                if child.dep_ == 'nsubj':
+                    subjects.append(child.text.lower())
+    results[row['title']] = Counter(subjects).most_common(10)
     return results
 
 
@@ -152,24 +198,24 @@ if __name__ == "__main__":
     uncomment the following lines to run the functions once you have completed them
     """
     path = Path.cwd() / "p1-texts" / "novels"
-    #print(path)
+    print(path)
     df = read_novels(path) # this line will fail until you have completed the read_novels function above.
-    #print(df.head())
-    #nltk.download("cmudict")
+    print(df.head())
+    nltk.download("cmudict")
     parse(df)
-    #print(df.head())
-    #print(get_ttrs(df))
-    #print(get_fks(df))
+    print(df.head())
+    print(get_ttrs(df))
+    print(get_fks(df))
     df = pd.read_pickle(Path.cwd() / "pickles" /"parsed.pickle")
-    #print(object_counts(df))
+    print(object_counts(df))
     for i, row in df.iterrows():
         print(row["title"])
         print(subjects_by_verb_count(row["Parsed"], "hear"))
         print("\n")
 
-    #for i, row in df.iterrows():
-    #    print(row["title"])
-     #   print(subjects_by_verb_pmi(row["Parsed"], "hear"))
-     #   print("\n")
+    for i, row in df.iterrows():
+        print(row["title"])
+        print(subjects_by_verb_pmi(row["Parsed"], "hear"))
+        print("\n")
     
 
