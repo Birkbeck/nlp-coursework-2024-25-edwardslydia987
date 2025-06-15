@@ -15,6 +15,7 @@ from nltk.tokenize import sent_tokenize
 import re
 import string
 from collections import Counter
+import math
 
 d = cmudict.dict()
 
@@ -146,39 +147,29 @@ def object_counts(df):
         results[row['title']] = object_freq
     return results
     
-    #all_objects = []
-    #for i, row in df.iterrows():
-    #    doc = row['Parsed']
-    #    if hasattr(doc, '__iter__') and hasattr(doc[0] if len(doc) > 0 else None, 'dep_'):
-    #        objects = [token.text.lower() for token in doc if token.dep_ == 'dobj']
-    #        all_objects.extend(objects)
-    #return Counter(all_objects).most_common(10)
-
-
 if __name__ == "__main__":
     """
     uncomment the following lines to run the functions once you have completed them
     """
     path = Path.cwd() / "p1-texts" / "novels"
-    print(path)
+    #print(path)
     df = read_novels(path) # this line will fail until you have completed the read_novels function above.
-    print(df.head())
-    nltk.download("cmudict")
+    #print(df.head())
+    #nltk.download("cmudict")
     parse(df)
-    print(df.head())
-    print(get_ttrs(df))
-    print(get_fks(df))
+    #print(df.head())
+    #print(get_ttrs(df))
+    #print(get_fks(df))
     df = pd.read_pickle(Path.cwd() / "pickles" /"parsed.pickle")
-    print(object_counts(df))
-    """ 
+    #print(object_counts(df))
     for i, row in df.iterrows():
         print(row["title"])
-        print(subjects_by_verb_count(row["parsed"], "hear"))
+        print(subjects_by_verb_count(row["Parsed"], "hear"))
         print("\n")
 
-    for i, row in df.iterrows():
-        print(row["title"])
-        print(subjects_by_verb_pmi(row["parsed"], "hear"))
-        print("\n")
-    """
+    #for i, row in df.iterrows():
+    #    print(row["title"])
+     #   print(subjects_by_verb_pmi(row["Parsed"], "hear"))
+     #   print("\n")
+    
 
