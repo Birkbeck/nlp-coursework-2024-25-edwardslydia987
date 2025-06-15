@@ -123,22 +123,36 @@ def subjects_by_verb_pmi(doc, target_verb):
 
 def subjects_by_verb_count(doc, verb):
     """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
-    pass
-
-
-
-def object_counts(doc):
-    """Extracts the most common objects in a parsed document. Returns a list of tuples."""
-    all_objects = []
-    for i, row in df.iterrows():
+    results = {}
+    for token in doc:
         doc = row['Parsed']
-        if hasattr(doc, '__iter__') and hasattr(doc[0] if len(doc) > 0 else None, 'dep_'):
-            objects = [token.text.lower() for token in doc if token.dep_ == 'dobj']
-            all_objects.extend(objects)
-    #common = Counter(objects).most_common(10)
-    #return common
+        subjects=[]
+        for token in doc:
+            if token.lemma_ == verb and token.pos_ == "VERB":
+                for child in token.children:
+                    if child.dep_ == 'nsubj':
+                        subjects.append(child.text.lower())
+        results[row['title']] = Counter(subjects).most_common(10)
+    return results
+
+
+
+def object_counts(df):
+    """Extracts the most common objects in a parsed document. Returns a list of tuples."""
+    results = {}
+    for i, row in df.iterrows():
+        objects = [token.text.lower() for token in row['Parsed'] if token.dep_ == 'dobj']
+        object_freq = Counter(objects).most_common(10)
+        results[row['title']] = object_freq
+    return results
     
-    return Counter(all_objects).most_common(10)
+    #all_objects = []
+    #for i, row in df.iterrows():
+    #    doc = row['Parsed']
+    #    if hasattr(doc, '__iter__') and hasattr(doc[0] if len(doc) > 0 else None, 'dep_'):
+    #        objects = [token.text.lower() for token in doc if token.dep_ == 'dobj']
+    #        all_objects.extend(objects)
+    #return Counter(all_objects).most_common(10)
 
 
 if __name__ == "__main__":
