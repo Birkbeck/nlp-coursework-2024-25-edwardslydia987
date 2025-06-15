@@ -48,3 +48,22 @@ if __name__ == "__main__":
     print(svm_f1_score)
     print(svm_report)
 
+    ngram_vectorizer = TfidfVectorizer(stop_words = 'english', max_features = 3000, ngram_range = (1, 3))
+    ngram_x = ngram_vectorizer.fit_transform(df['speech'])
+    ngram_y = df['party']
+
+    ngram_x_train, ngram_x_test, ngram_y_train, ngram_y_test = train_test_split(ngram_x, ngram_y, random_state = 26, stratify = y)
+
+    ngram_rf_classifier = RandomForestClassifier(n_estimators = 300)
+    ngram_rf_classifier.fit(ngram_x_train, ngram_y_train)
+    ngram_rf_predictions = rf_classifier.predict(ngram_x_test)
+    ngram_rf_f1_score = f1_score(ngram_y_test, ngram_rf_predictions, average = 'macro')
+    ngram_rf_report = classification_report(ngram_y_test, ngram_rf_predictions)
+    print(ngram_rf_report)
+
+    ngram_svm_classifier = SVC(kernel = 'linear')
+    ngram_svm_classifier.fit(ngram_x_train, ngram_y_train)
+    ngram_svm_predictions = svm_classifier.predict(ngram_x_test)
+    ngram_svm_f1_score = f1_score(ngram_y_test, ngram_svm_predictions, average = 'macro')
+    ngram_svm_report = classification_report(ngram_y_test, ngram_svm_predictions)
+    print(ngram_svm_report)
