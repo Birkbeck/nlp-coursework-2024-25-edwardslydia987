@@ -150,29 +150,9 @@ def subjects_by_verb_pmi(doc, target_verb):
     return dict(sorted(pmi_scores.items(), key = lambda x: x[1], reverse = True)[:10])
     
     
-    #for token in doc:
-    #    if token.dep_ == 'nsubj' and token.head/lemma_ == target_verb:
-    #        subject = token.text.lower()
-    #        subject_counts[subject] += 1
-    #        verb_counts[target_verb] += 1
-    #        cooccurrence[(subject, target_verb)] += 1
-    #        total_verbs += 1
-    #pmi_scores = {}
-    #for (subject, verb), joint_count in cooccurrence.items():
-    #    p_subject = subject_counts[subject] / sum(subject_counts.values())
-    #    p_verb = verb_counts[verb] / total_verbs
-    #    p_joint = joint_count / total_verbs
-    #    pmi = math.log2(p_joint / (p_subject * p_verb))
-    #    pmi_scores[subject] = pmi
-
-    #return dict(sorted(pmi_scores.items(), key = lambda x: x[1], reverse = True)[:10])
-
-
 def subjects_by_verb_count(doc, verb):
     """Extracts the most common subjects of a given verb in a parsed document. Returns a list."""
     results = {}
-    #for token in doc:
-    #    doc = row['Parsed']
     subjects=[]
     for token in doc:
         if token.lemma_ == verb.lower() and token.pos_ == "VERB":
