@@ -1,10 +1,22 @@
 import pandas as pd
+import re
+import string
+import nltk
+import contractions
+nltk.download('stopwords')
+nltk.download('punkt')
+from nltk.corpus import stopwords
+from nltk.tokenize import word_tokenize
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.datasets import make_classification
 from sklearn.svm import SVC
 from sklearn.metrics import f1_score, classification_report
+from nltk.stem import WordNetLemmatizer
+nltk.download('wordnet')
+nltk.download('omw-1.4')
+ 
 
 def subset_and_rename(file):
     df = pd.read_csv(file)
@@ -17,7 +29,22 @@ def subset_and_rename(file):
 
     return df
 
+def custom_tokenizer(text):
+    
+    stop_words = set(stopwords.words('english'))
+    lemmatizer = WordNetLemmatizer()
+    
+    text = contractions.fix(text)
+    text = text.lower()
+    text = re.sub(r'\d+', '', text)
+    text = re.sub(rf'[{re.escape(string.punctuation)}]', '', text)    
+    
+    tokens = word_tokenize(text)
+    
+    tokens = [t for t in tokens if t not in stop_words and len(t) > 2]
+    tokens = [lemmatizer.lemmatize(t) for t in tokens]
 
+    return tokens
 
 def rf_classifier(x_train, x_test, y_train, y_test):
     rf_classifier = RandomForestClassifier(n_estimators = 300)
@@ -37,7 +64,7 @@ def svm_classifier(x_train, x_test, y_train, y_test):
     
     return (svm_f1_score, svm_report)
 
-def ngram_classifiers(x_train, x_test, y_train, y_test):
+def ngram_classifiers(ngram_x_train, ngram_x_test, ngram_y_train, ngram_y_test):
     ngram_rf_classifier = RandomForestClassifier(n_estimators = 300)
     ngram_rf_classifier.fit(ngram_x_train, ngram_y_train)
     ngram_rf_predictions = ngram_rf_classifier.predict(ngram_x_test)
@@ -73,9 +100,32 @@ if __name__ == "__main__":
     ngram_x = ngram_vectorizer.fit_transform(df['speech'])
     ngram_y = df['party']
 
-    ngram_x_train, ngram_x_test, ngram_y_train, ngram_y_test = train_test_split(ngram_x, ngram_y, random_state = 26, stratify = y)
+    ngram_x_train, ngram_x_test, ngram_y_train, ngram_y_test = train_test_split(ngram_x, ngram_y, random_state = 26, stratify = ngram_y)
     ngram_rf_report, ngram_svm_report = ngram_classifiers(ngram_x_train, ngram_x_test, ngram_y_train, ngram_y_test)
     print(ngram_rf_report)
     print(ngram_svm_report)
 
+    custom_vectorizer = TfidfVectorizer(tokenizer = custom_tokenizer, lowercase = False, max_features = 3000)
+    custom_x = custom_vectorizer.fit_transform(df['speech'])
+    custom_y = df['party']
+
+    custom_x_train, custom_x_test, custom_y_train, custom_y_test = train_test_split(custom_x, custom_y, random_state = 26, stratify = custom_y)
+
+    custom_rf_f1_score, custom_rf_report = rf_classifier(custom_x_train, custom_x_test, custom_y_train, custom_y_test)
+    custom_svm_f1_score, custom_svm_report = svm_classifier(custom_x_train, custom_x_test, custom_y_train, custom_y_test)
     
+    print(custom_rf_f1_score)
+    print(custom_rf_report)
+    print(custom_svm_f1_score)
+    print(custom_svm_report)
+
+    ngram_custom_vectorizer = TfidfVectorizer(tokenizer = custom_tokenizer, lowercase = False, max_features = 3000, ngram_range = (1, 3))
+    ngram_custom_x = custom_vectorizer.fit_transform(df['speech'])
+    ngram_custom_y = df['party']
+
+    ngram_custom_x_train, ngram_custom_x_test, ngram_custom_y_train, ngram_custom_y_test = train_test_split(ngram_custom_x, ngram_custom_y, random_state = 26, stratify = ngram_custom_y)
+
+    ngram_custom_rf_report, ngram_custom_svm_report = ngram_classifiers(ngram_custom_x_train, ngram_custom_x_test, ngram_custom_y_train, ngram_custom_y_test)
+    
+    print(ngram_custom_rf_report)
+    print(ngram_custom_svm_report)
