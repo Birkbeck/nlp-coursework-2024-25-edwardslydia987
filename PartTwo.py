@@ -16,6 +16,8 @@ from sklearn.metrics import f1_score, classification_report
 from nltk.stem import WordNetLemmatizer
 nltk.download('wordnet')
 nltk.download('omw-1.4')
+import spacy
+nlp = spacy.load("en_core_web_sm")
  
 
 def subset_and_rename(file):
@@ -30,16 +32,13 @@ def subset_and_rename(file):
     return df
 
 def custom_tokenizer(text):
-    
-    stop_words = set(stopwords.words('english'))
-    political_stopwords = {'hon', 'honourable', 'member', 'parliament', 'house', 'minister', 'government'}
-    stop_words.update(political_stopwords)
-    lemmatizer = WordNetLemmatizer()
-    
     text = contractions.fix(text)
     text = text.lower()
     text = re.sub(r'\d+', '', text)
-    text = re.sub(rf'[{re.escape(string.punctuation)}]', '', text)    
+    text = re.sub(rf'[{re.escape(string.punctuation)}]', '', text) 
+
+    stop_words = set(stopwords.words('english'))
+    lemmatizer = WordNetLemmatizer()
     
     tokens = word_tokenize(text)
     
@@ -114,7 +113,9 @@ if __name__ == "__main__":
     print(ngram_svm_report) #N-Gram SVM Classification Report
 
     #Q1e. Implement a new custom tokenizer and pass it to the tokenizer argument of Tfidfvectorizer
-    custom_vectorizer = TfidfVectorizer(tokenizer = custom_tokenizer, lowercase = False, max_features = 3000)
+    #df['clean_speech'] = df['speech'].apply(lambda x: ' '.join(custom_tokenizer(x)))
+    
+    custom_vectorizer = TfidfVectorizer(tokenizer = custom_tokenizer, lowercase = False, max_features = 100)
     custom_x = custom_vectorizer.fit_transform(df['speech'])
     custom_y = df['party']
 
@@ -123,7 +124,7 @@ if __name__ == "__main__":
     custom_rf_f1_score, custom_rf_report = rf_classifier(custom_x_train, custom_x_test, custom_y_train, custom_y_test)
     custom_svm_f1_score, custom_svm_report = svm_classifier(custom_x_train, custom_x_test, custom_y_train, custom_y_test)
     
-    ngram_custom_vectorizer = TfidfVectorizer(tokenizer = custom_tokenizer, lowercase = False, max_features = 3000, ngram_range = (1, 3))
+    ngram_custom_vectorizer = TfidfVectorizer(tokenizer = custom_tokenizer, lowercase = False, max_features = 100, ngram_range = (1, 3))
     ngram_custom_x = custom_vectorizer.fit_transform(df['speech'])
     ngram_custom_y = df['party']
 

@@ -1,9 +1,14 @@
+
 1d). When is the Flesch Kincaid score *not* a valid, robust or reliable estimator of text difficulty? Give two conditions. (Text answer, 200 words maximum).
 The Flesch Kincaid Grade Level (FKGL) scores may not be a valid robust or reliable estimator of text difficulty for several reasons. As the formula only looks at features such as sentence and word length, it often mistakenly marks difficult texts as easy. This can be seen in cases such as when it is used on technical texts as it does not look at whether the reader is likely to know its meaning. It is not able to differentiate what would be a commonly known word, and terminology for a specific domain. Texts with a lot of complex, technical terms therefore obtain a misleading low difficult score as the words or sentences are short. FKGL can also be misleading when the text does not follow a standard structure, such as poetry or creative writing. These texts often have irregular sentence lengths, unusual syntax, or fragmented sentences, whereas FKGL assumes regular sentence structure.
 
 2f). Explain your tokenizer function and discuss its performance.
-The custom tokenizer function improves the performance of the classification models by implementing additional steps into the preprocessing of the data. 
+
+The custom tokenizer function aims to improve the performance of the classification models by implementing additional steps into the preprocessing of the data.
+
 The function uses contractions.fix() to remove contractions in the text to expand any shortened words, and text.lower to return the characters in lowercase. These help to create consistency, reduce dimensionality, and to better interpret word meaning. 
 re.sub(r'\d+', '', text) removes numbers from the text, and re.sub(rf'[{re.escape(string.punctuation)}]', '', text) removes any punctuation, both of which help to reduce noise in the text without diminishing the semantic meaning.
 word_tokenize() splits the cleaned data into individual tokens that are then reduced to their root form using lemmatizer.lemmatize().
-The increased performance of the classifiers using the customised tokenizer can be seen in the higher F1 scores when compared to the original tokenizer. This is due to the increased accuracy provided by the custom_tokenizer function, which helps to narrow down the most important features of the text to make more informed decisions.
+
+However, upon analysis of the evaluation metrics in the classification report of the custom tokenizer, it did not enhance the performance of the classifier when compared to the default tokenizer used in parts c and d. 
+The increased performance of the classifiers using the customised tokenizer would have been shown by a higher F1 scores when compared to the original tokenizer, due to the increased accuracy provided by narrowing the text down to its most important features to make more informed decisions.
