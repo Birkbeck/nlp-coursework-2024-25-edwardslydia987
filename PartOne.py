@@ -77,7 +77,7 @@ def read_novels(path=Path.cwd() / "texts" / "novels"):
             year = column_split[2]
         data.append({"text": text, "title": title, "author": author, "year": year})
     df = pd.DataFrame(data)
-    df.sort_values(by=["year"])
+    df = df.sort_values(by=["year"])
     return df
 
 
